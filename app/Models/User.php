@@ -22,6 +22,7 @@ class User extends Authenticatable
         'height',
         'physical_activity_level',
         'goal',
+        'email_verified_at',
         'password',
         'verified',
         'otp',

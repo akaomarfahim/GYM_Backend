@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use App\Models\User;
-use App\Notifications\EmailVerificationOTP;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use App\Notifications\EmailVerificationOTP;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -27,7 +28,7 @@ class AuthController extends Controller
         }
 
         // Generate OTP
-        $otp = rand(100000, 999999);
+        $otp = rand(10000, 99999);
 
         // Save the OTP in the user record or any temporary storage
         // You may use a separate table or cache to store OTPs temporarily
@@ -72,8 +73,11 @@ class AuthController extends Controller
         // Find the user by email
         $user = User::where('email', $request->email)->first();
 
-        // Mark the user as verified (you may have a 'verified' column in the users table)
-        $user->update(['verified' => true]);
+        // Mark the user as verified (you may have a 'verified' and 'email_verified_at' column in the users table)
+        $user->update([
+            'verified' => true,
+            'email_verified_at' => Carbon::now()
+        ]);
 
         // Log in the user and generate token
         Auth::login($user);
@@ -88,41 +92,51 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required|string',
+            'otp' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['message' => $validator->errors()->first()], 422);
         }
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
-            ]);
+        if ($request->has('otp')) {
+            $user = User::where('email', $request->email)->first();
+
+            // Verify OTP
+            $otpFromUser = $request->input('otp');
+            $storedOtp = $request->session()->get('email_verification_otp');
+
+            if ($otpFromUser != $storedOtp) {
+                return response()->json(['message' => 'Invalid OTP.'], 422);
+            }
+
+            // Clear the stored OTP
+            $request->session()->forget('email_verification_otp');
+
+            if (!$user->verified) {
+                return response()->json(['message' => 'User not verified.'], 422);
+            }
+
+            // Mark the user as verified
+            $user->update(['email_verified_at' => Carbon::now()]);
+        } else {
+            if (!Auth::attempt($request->only('email', 'password'))) {
+                throw ValidationException::withMessages([
+                    'email' => ['The provided credentials are incorrect.'],
+                ]);
+            }
+
+            if (!auth()->user()->verified) {
+                auth()->logout();
+
+                return response()->json(['message' => 'User not verified.'], 422);
+            }
         }
 
         $token = auth()->user()->createToken('auth_token')->plainTextToken;
 
         return response()->json(['token' => $token], 200);
     }
-
-    // public function login(Request $request)
-    // {
-    //     $request->validate([
-    //         'email' => 'required|email',
-    //         'password' => 'required|string',
-    //     ]);
-
-    //     $credentials = $request->only('email', 'password');
-
-    //     if (Auth::attempt($credentials)) {
-    //         $user = User::where('email', $request->email)->first();
-    //         $token = $user->createToken('api_token')->plainTextToken;
-
-    //         return response()->json(['user' => $user, 'token' => $token]);
-    //     }
-
-    //     return response()->json(['message' => 'Invalid credentials'], 401);
-    // }
 
     public function logout()
     {
