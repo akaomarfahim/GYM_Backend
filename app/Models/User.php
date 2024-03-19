@@ -13,19 +13,23 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
-        'first_name',
-        'last_name',
+        'firstName',
+        'lastName',
         'email',
         'phone',
-        'profile_picture',
-        'weight',
+        'profilePicture',
+        'gender',
+        'age',
         'height',
-        'physical_activity_level',
-        'goal',
-        'email_verified_at',
+        'weight',
+        'weightType',
+        'physicalActivityLevel',
+        'goals',
+        'emailVerifiedAt',
         'password',
         'verified',
-        'otp',
+        'otpConfirmed',
+        'registrationType',
     ];
 
     protected $hidden = [
@@ -34,10 +38,10 @@ class User extends Authenticatable
     ];
 
     protected $casts = [
-        'email_verified_at' => 'datetime',
+        'emailVerifiedAt' => 'datetime',
         'password' => 'hashed',
-        'physical_activity_level' => 'json',
-        'goal' => 'json',
+        'physicalActivityLevel' => 'json',
+        'goals' => 'json',
         'verified' => 'boolean',
     ];
 

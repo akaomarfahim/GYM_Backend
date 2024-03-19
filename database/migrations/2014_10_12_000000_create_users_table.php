@@ -13,19 +13,23 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('first_name');
-            $table->string('last_name');
+            $table->string('firstName')->nullable();
+            $table->string('lastName')->nullable();
             $table->string('email')->unique();
             $table->string('phone')->unique()->nullable();
-            $table->string('profile_picture')->nullable();
-            $table->string('weight')->nullable();
-            $table->string('height')->nullable();
-            $table->string('physical_activity_level')->nullable();
-            $table->string('goal')->nullable();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
+            $table->string('profilePicture')->nullable();
+            $table->integer('gender')->nullable();
+            $table->integer('age')->nullable();
+            $table->double('height')->nullable();
+            $table->integer('weight')->nullable();
+            $table->integer('weightType')->nullable();
+            $table->integer('physicalActivityLevel')->nullable();
+            $table->string('goals')->nullable();
+            $table->timestamp('emailVerifiedAt')->nullable();
+            $table->string('password')->nullable();
             $table->boolean('verified')->default(false);
-            $table->string('otp')->nullable();
+            $table->string('otpConfirmed')->nullable();
+            $table->string('registrationType')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

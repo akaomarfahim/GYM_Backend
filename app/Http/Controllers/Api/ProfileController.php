@@ -21,27 +21,30 @@ class ProfileController extends Controller
             $user = Auth::user();
 
             $request->validate([
-                'first_name' => 'nullable|string|max:255',
-                'last_name' => 'nullable|string|max:255',
+                'firstName' => 'nullable|string|max:255',
+                'lastName' => 'nullable|string|max:255',
                 'email' => 'nullable|email|unique:users,email,' . $user->id,
                 'phone' => 'nullable|string',
-                'profile_picture' => 'nullable|string',
-                'weight' => 'nullable|string',
-                'height' => 'nullable|string',
-                'physical_activity_level' => 'nullable|array',
-                'goal' => 'nullable|array',
-                'new_password' => 'nullable|min:8|different:old_password',
-                'confirm_password' => 'nullable|same:new_password',
+                'profilePicture' => 'nullable|string',
+                'gender' => 'nullable|integer',
+                'age' => 'nullable|integer',
+                'height' => 'nullable|double',
+                'weight' => 'nullable|integer',
+                'weightType' => 'nullable|integer',
+                'physicalActivityLevel' => 'nullable|array',
+                'goals' => 'nullable|array',
+                'newPassword' => 'nullable|min:8|different:oldPassword',
+                'confirmPassword' => 'nullable|same:new_password',
             ]);
 
-            $data = $request->except(['old_password', 'new_password', 'confirm_password']);
+            $data = $request->except(['old_password', 'newPassword', 'confirmPassword']);
 
-            if ($request->filled('old_password') && $request->filled('new_password')) {
-                if (!\Hash::check($request->input('old_password'), $user->password)) {
+            if ($request->filled('oldPassword') && $request->filled('newPassword')) {
+                if (!\Hash::check($request->input('oldPassword'), $user->password)) {
                     return response()->json(['error' => 'The old password is incorrect.'], 422);
                 }
 
-                $data['password'] = bcrypt($request->input('new_password'));
+                $data['password'] = bcrypt($request->input('newPassword'));
             }
 
             $user->update($data);

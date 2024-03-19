@@ -17,8 +17,8 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
+            'firstName' => 'required|string|max:255',
+            'lastName' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8',
         ]);
@@ -33,11 +33,11 @@ class AuthController extends Controller
         // Save the OTP in the user record or any temporary storage
         // You may use a separate table or cache to store OTPs temporarily
         // For simplicity, storing in the session for now
-        $request->session()->put('email_verification_otp', $otp);
+        $request->session()->put('emailVerificationOtp', $otp);
 
         $user = User::create([
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
+            'firstName' => $request->firstName,
+            'lastName' => $request->lastName,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
@@ -48,11 +48,49 @@ class AuthController extends Controller
         return response()->json(['message' => 'OTP sent to your email.'], 201);
     }
 
+    public function registerWithoutPass(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|unique:users,email',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['message' => $validator->errors()->first()], 422);
+        }
+
+        $user = User::create([
+            'email' => $request->email,
+        ]);
+
+        return response()->json(['message' => 'User registered successfully.'], 201);
+    }
+
+    public function loginWithoutPass(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['message' => $validator->errors()->first()], 422);
+        }
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'Invalid email or user not verified.'], 422);
+        }
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json(['token' => $token], 200);
+    }
+
     public function verifyOtpAndRegister(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
-            'otp' => 'required|string',
+            'otpConfirmed' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -60,7 +98,7 @@ class AuthController extends Controller
         }
 
         // Verify OTP
-        $otpFromUser = $request->input('otp');
+        $otpFromUser = $request->input('otpConfirmed');
         $storedOtp = $request->session()->get('email_verification_otp');
 
         if ($otpFromUser != $storedOtp) {
@@ -73,10 +111,10 @@ class AuthController extends Controller
         // Find the user by email
         $user = User::where('email', $request->email)->first();
 
-        // Mark the user as verified (you may have a 'verified' and 'email_verified_at' column in the users table)
+        // Mark the user as verified (you may have a 'verified' and 'emailVerifiedAt' column in the users table)
         $user->update([
             'verified' => true,
-            'email_verified_at' => Carbon::now()
+            'emailVerifiedAt' => Carbon::now()
         ]);
 
         // Log in the user and generate token
@@ -92,18 +130,18 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required|string',
-            'otp' => 'nullable|string',
+            'otpConfirmed' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['message' => $validator->errors()->first()], 422);
         }
 
-        if ($request->has('otp')) {
+        if ($request->has('otpConfirmed')) {
             $user = User::where('email', $request->email)->first();
 
             // Verify OTP
-            $otpFromUser = $request->input('otp');
+            $otpFromUser = $request->input('otpConfirmed');
             $storedOtp = $request->session()->get('email_verification_otp');
 
             if ($otpFromUser != $storedOtp) {
@@ -118,7 +156,7 @@ class AuthController extends Controller
             }
 
             // Mark the user as verified
-            $user->update(['email_verified_at' => Carbon::now()]);
+            $user->update(['emailVerifiedAt' => Carbon::now()]);
         } else {
             if (!Auth::attempt($request->only('email', 'password'))) {
                 throw ValidationException::withMessages([

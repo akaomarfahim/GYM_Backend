@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\PermissionController;
 
 
+Route::post('/register-with-social', [AuthController::class, 'registerWithoutPass']);
+Route::post('/login-with-social', [AuthController::class, 'loginWithoutPass']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout']);
