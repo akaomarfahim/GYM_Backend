@@ -28,7 +28,7 @@ return new class extends Migration
             $table->timestamp('emailVerifiedAt')->nullable();
             $table->string('password')->nullable();
             $table->boolean('verified')->default(false);
-            $table->string('otpConfirmed')->nullable();
+            $table->string('otp')->nullable();
             $table->string('registrationType')->nullable();
             $table->string('userType')->nullable();
             $table->rememberToken();

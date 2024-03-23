@@ -40,7 +40,7 @@ class AuthController extends Controller
         // Save the OTP in the user record or any temporary storage
         // You may use a separate table or cache to store OTPs temporarily
         // For simplicity, storing in the session for now
-        $request->session()->put('emailVerificationOtp', $otp);
+        $request->session()->put('email_verification_otp', $otp);
 
         $user = User::create([
             'firstName' => $request->firstName,
@@ -104,7 +104,7 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
-            'otpConfirmed' => 'required|string',
+            'otp' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -112,7 +112,7 @@ class AuthController extends Controller
         }
 
         // Verify OTP
-        $otpFromUser = $request->input('otpConfirmed');
+        $otpFromUser = $request->input('otp');
         $storedOtp = $request->session()->get('email_verification_otp');
 
         if ($otpFromUser != $storedOtp) {
@@ -139,31 +139,57 @@ class AuthController extends Controller
         return response()->json(['token' => $token, 'message' => 'Registration successful.'], 201);
     }
 
-    public function login(Request $request)
+    public function verifyPassword(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required|string',
-            'otpConfirmed' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['message' => $validator->errors()->first()], 422);
         }
 
-        if ($request->has('otpConfirmed')) {
+        return response()->json(['message' => 'Registration successful.'], 201);
+    }
+
+    public function login(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'password' => 'required|string',
+            'otp' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['message' => $validator->errors()->first()], 422);
+        }
+
+        if ($request->has('otp')) {
             $user = User::where('email', $request->email)->first();
 
+            // // Clear the stored OTP
+            // $request->session()->forget('email_verification_otp');
+
+            // // Generate OTP
+            // $otp = rand(10000, 99999);
+
+            // // Save the OTP in the user record or any temporary storage
+            // // You may use a separate table or cache to store OTPs temporarily
+            // // For simplicity, storing in the session for now
+            // $request->session()->put('email_verification_otp', $otp);
+
+            // // Send OTP via email
+            // $user->notify(new EmailVerificationOTP($otp));
+
             // Verify OTP
-            $otpFromUser = $request->input('otpConfirmed');
+            $otpFromUser = $request->input('otp');
             $storedOtp = $request->session()->get('email_verification_otp');
 
             if ($otpFromUser != $storedOtp) {
                 return response()->json(['message' => 'Invalid OTP.'], 422);
             }
 
-            // Clear the stored OTP
-            $request->session()->forget('email_verification_otp');
 
             if (!$user->verified) {
                 return response()->json(['message' => 'User not verified.'], 422);

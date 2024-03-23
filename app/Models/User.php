@@ -28,8 +28,9 @@ class User extends Authenticatable
         'emailVerifiedAt',
         'password',
         'verified',
-        'otpConfirmed',
+        'otp',
         'registrationType',
+        'userType',
     ];
 
     protected $hidden = [

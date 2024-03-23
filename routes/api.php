@@ -15,6 +15,7 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout']);
 Route::post('/users/verify', [AuthController::class, 'verifyOtpAndRegister']);
+Route::post('/users/create/password', [AuthController::class, 'verifyPassword']);
 Route::post('/users/send-otp', [AuthController::class, 'sendOtp']);
 
 Route::middleware('web', 'auth:sanctum')->group(function () {
