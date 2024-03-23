@@ -20,7 +20,14 @@ class AuthController extends Controller
             'firstName' => 'required|string|max:255',
             'lastName' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8',
+            'age' => 'nullable|integer',
+            'height' => 'nullable|numeric',
+            'weight' => 'nullable|integer',
+            'physicalActivityLevel' => 'nullable|integer',
+            'goals' => 'nullable|array',
+            'registrationType' => 'nullable|string',
+            'userType' => 'nullable|string',
+            'password' => 'nullable|string|min:8',
         ]);
 
         if ($validator->fails()) {
@@ -39,6 +46,13 @@ class AuthController extends Controller
             'firstName' => $request->firstName,
             'lastName' => $request->lastName,
             'email' => $request->email,
+            'age' => $request->age,
+            'height' => $request->height,
+            'weight' => $request->weight,
+            'physicalActivityLevel' => $request->physicalActivityLevel,
+            'goals' => $request->goals,
+            'registrationType' => $request->registrationType,
+            'userType' => $request->userType,
             'password' => Hash::make($request->password),
         ]);
 

@@ -24,12 +24,13 @@ return new class extends Migration
             $table->integer('weight')->nullable();
             $table->integer('weightType')->nullable();
             $table->integer('physicalActivityLevel')->nullable();
-            $table->string('goals')->nullable();
+            $table->json('goals')->nullable();
             $table->timestamp('emailVerifiedAt')->nullable();
             $table->string('password')->nullable();
             $table->boolean('verified')->default(false);
             $table->string('otpConfirmed')->nullable();
             $table->string('registrationType')->nullable();
+            $table->string('userType')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
