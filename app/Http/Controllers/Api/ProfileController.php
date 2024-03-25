@@ -12,7 +12,7 @@ class ProfileController extends Controller
     public function show()
     {
         $user = auth()->user();
-        return response()->json(['user' => $user]);
+        return response()->json($user);
     }
 
     public function update(Request $request)
