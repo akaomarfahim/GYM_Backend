@@ -97,7 +97,7 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json(['token' => $token], 200);
+        return response()->json(['Bearer' => $token], 200);
     }
 
     public function verifyOtpAndRegister(Request $request)
@@ -136,7 +136,7 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json(['token' => $token, 'message' => 'Registration successful.'], 201);
+        return response()->json(['Bearer' => $token, 'message' => 'Registration successful.'], 201);
     }
 
     public function verifyPassword(Request $request)
@@ -149,6 +149,12 @@ class AuthController extends Controller
         if ($validator->fails()) {
             return response()->json(['message' => $validator->errors()->first()], 422);
         }
+
+        $user = User::where('email', $request->email)->first();
+        // Update the user's password
+        $user->update([
+            'password' => Hash::make($request->password),
+        ]);
 
         return response()->json(['message' => 'Registration successful.'], 201);
     }
@@ -220,7 +226,7 @@ class AuthController extends Controller
 
         $token = auth()->user()->createToken('auth_token')->plainTextToken;
 
-        return response()->json(['token' => $token], 200);
+        return response()->json(['Bearer' => $token], 200);
     }
 
     public function resetPassword(Request $request)
