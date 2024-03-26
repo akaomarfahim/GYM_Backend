@@ -32,6 +32,7 @@
         <h1 class="heading">Welcome to GYM</h1>
         <p class="subheading">Fitness Simplified</p>
         <a class="btn btn-dark" href="#">Login</a>
+        <a class="btn btn-light" href="/api/documentation">API Documentation</a>
         <div class="footer">
             &copy; 2024 <a href=""><img src="{{ asset('img/brenbala-logo.png') }}" height="40" width="145" alt="brenbala logo" /></a>. All rights reserved.
         </div>
