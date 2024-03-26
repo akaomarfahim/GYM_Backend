@@ -63,7 +63,7 @@
         <p>If you did not request this OTP, no further action is required.</p>
         <p class="footer">
             Copyright © 2024
-            <img src="data:image/webp;base64,{{ base64_encode(file_get_contents(public_path('img/brenbala-logo.webp'))) }}" alt="Brenbala" />
+            <img src="data:image/webp;base64,{{ base64_encode(file_get_contents(public_path('img/brenbala-logo.png'))) }}" alt="Brenbala" />
             . All rights reserved.
         </p>
     </div>

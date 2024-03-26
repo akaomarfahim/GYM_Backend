@@ -33,7 +33,7 @@
         <p class="subheading">Fitness Simplified</p>
         <a class="btn btn-dark" href="#">Login</a>
         <div class="footer">
-            &copy; 2024 GYM. All rights reserved. | Designed by <a href="https://yourwebsite.com"><img src="https://www.tmt-soft.com/user/assets/img/logo.png" height="80" width="150" /></a>
+            &copy; 2024 <a href=""><img src="{{ asset('img/brenbala-logo.png') }}" height="40" width="145" alt="brenbala logo" /></a>. All rights reserved.
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
