@@ -315,6 +315,35 @@ class AuthController extends Controller
         return response()->json(['message' => 'Password updated successfully.'], 200);
     }
 
+    public function resendOtp(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['message' => $validator->errors()->first()], 422);
+        }
+
+        // Check if the user exists
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found.'], 404);
+        }
+
+        // Generate new OTP
+        $otp = rand(10000, 99999);
+
+        // Save new OTP
+        $request->session()->put('email_verification_otp', $otp);
+
+        // Send new OTP via email
+        $user->notify(new EmailVerificationOTP($otp));
+
+        return response()->json(['message' => 'New OTP sent to your email.'], 200);
+    }
+
     public function logout()
     {
         auth()->user()->tokens()->delete();

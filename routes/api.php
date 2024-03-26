@@ -26,6 +26,15 @@ Route::post('password/reset', [AuthController::class, 'resetPassword']);
 Route::post('password/verify-otp', [AuthController::class, 'verifyPasswordResetOTP']);
 Route::post('password/update', [AuthController::class, 'updatePassword']);
 
+//Resend OTP
+Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
+
+// Core value data
+Route::get('/genders', [GenderController::class, 'index']);
+Route::get('/goals', [GoalController::class, 'index']);
+Route::get('/units-of-measurement', [UnitOfMeasurementController::class, 'index']);
+Route::get('/user-types', [UserTypeController::class, 'index']);
+
 Route::middleware('web', 'auth:sanctum')->group(function () {
 
     Route::post('/users/password/create', [AuthController::class, 'verifyPassword']);
@@ -51,28 +60,4 @@ Route::middleware('web', 'auth:sanctum')->group(function () {
     Route::post('/permissions', [PermissionController::class, 'store']);
     Route::put('/permissions/{permission}', [PermissionController::class, 'update']);
     Route::delete('/permissions/{permission}', [PermissionController::class, 'destroy']);
-
-    Route::get('/genders', [GenderController::class, 'index']);
-    Route::get('/genders/{gender}', [GenderController::class, 'show']);
-    Route::post('/genders', [GenderController::class, 'store']);
-    Route::put('/genders/{gender}', [GenderController::class, 'update']);
-    Route::delete('/genders/{gender}', [GenderController::class, 'destroy']);
-
-    Route::get('/goals', [GoalController::class, 'index']);
-    Route::get('/goals/{goal}', [GoalController::class, 'show']);
-    Route::post('/goals', [GoalController::class, 'store']);
-    Route::put('/goals/{goal}', [GoalController::class, 'update']);
-    Route::delete('/goals/{goal}', [GoalController::class, 'destroy']);
-
-    Route::get('/units-of-measurement', [UnitOfMeasurementController::class, 'index']);
-    Route::get('/units-of-measurement/{unitOfMeasurement}', [UnitOfMeasurementController::class, 'show']);
-    Route::post('/units-of-measurement', [UnitOfMeasurementController::class, 'store']);
-    Route::put('/units-of-measurement/{unitOfMeasurement}', [UnitOfMeasurementController::class, 'update']);
-    Route::delete('/units-of-measurement/{unitOfMeasurement}', [UnitOfMeasurementController::class, 'destroy']);
-
-    Route::get('/user-types', [UserTypeController::class, 'index']);
-    Route::get('/user-types/{userType}', [UserTypeController::class, 'show']);
-    Route::post('/user-types', [UserTypeController::class, 'store']);
-    Route::put('/user-types/{userType}', [UserTypeController::class, 'update']);
-    Route::delete('/user-types/{userType}', [UserTypeController::class, 'destroy']);
 });
