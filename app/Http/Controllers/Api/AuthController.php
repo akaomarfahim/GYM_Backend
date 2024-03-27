@@ -469,7 +469,7 @@ class AuthController extends Controller
     /**
      * @OA\Post(
      *     path="/api/password/reset",
-     *     tags={"Authentication"},
+     *     tags={"Reset Password"},
      *     summary="Reset user password",
      *     description="Resets the user password.",
      *     operationId="resetPassword",
@@ -537,7 +537,7 @@ class AuthController extends Controller
     /**
      * @OA\Post(
      *     path="/api/password/verify-otp",
-     *     tags={"Authentication"},
+     *     tags={"Reset Password"},
      *     summary="Verify password reset OTP",
      *     description="Verifies the password reset OTP.",
      *     operationId="verifyPasswordResetOTP",
@@ -597,7 +597,7 @@ class AuthController extends Controller
     /**
      * @OA\Post(
      *     path="/api/password/update",
-     *     tags={"Authentication"},
+     *     tags={"Reset Password"},
      *     summary="Update user password",
      *     description="Updates the user's password.",
      *     operationId="updatePassword",
@@ -662,43 +662,43 @@ class AuthController extends Controller
         return response()->json(['message' => 'Password updated successfully.'], 200);
     }
 
-    // /**
-    //  * @OA\Post(
-    //  *     path="/api/resend-otp,
-    //  *     tags={"Authentication"},
-    //  *     summary="Resend OTP",
-    //  *     description="Resends the OTP to the user's email.",
-    //  *     operationId="resendOtp",
-    //  *     @OA\RequestBody(
-    //  *         required=true,
-    //  *         description="User email",
-    //  *         @OA\JsonContent(
-    //  *             required={"email"},
-    //  *             @OA\Property(property="email", type="string", format="email")
-    //  *         )
-    //  *     ),
-    //  *     @OA\Response(
-    //  *         response=200,
-    //  *         description="New OTP sent successfully",
-    //  *         @OA\JsonContent(
-    //  *             type="object",
-    //  *             @OA\Property(property="message", type="string")
-    //  *         )
-    //  *     ),
-    //  *     @OA\Response(
-    //  *         response=422,
-    //  *         description="Validation Error"
-    //  *     ),
-    //  *     @OA\Response(
-    //  *         response=404,
-    //  *         description="User not found"
-    //  *     ),
-    //  *     @OA\Response(
-    //  *         response=500,
-    //  *         description="Server Error"
-    //  *     )
-    //  * )
-    //  */
+    /**
+     * @OA\Post(
+     *     path="/api/resend-otp",
+     *     tags={"Authentication"},
+     *     summary="Resend OTP",
+     *     description="Resends the OTP to the user's email.",
+     *     operationId="resendOtp",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         description="User email",
+     *         @OA\JsonContent(
+     *             required={"email"},
+     *             @OA\Property(property="email", type="string", format="email")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="New OTP sent successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation Error"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="User not found"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Server Error"
+     *     )
+     * )
+     */
     public function resendOtp(Request $request)
     {
         $validator = Validator::make($request->all(), [

@@ -365,7 +365,7 @@
         "/api/password/reset": {
             "post": {
                 "tags": [
-                    "Authentication"
+                    "Reset Password"
                 ],
                 "summary": "Reset user password",
                 "description": "Resets the user password.",
@@ -421,7 +421,7 @@
         "/api/password/verify-otp": {
             "post": {
                 "tags": [
-                    "Authentication"
+                    "Reset Password"
                 ],
                 "summary": "Verify password reset OTP",
                 "description": "Verifies the password reset OTP.",
@@ -478,7 +478,7 @@
         "/api/password/update": {
             "post": {
                 "tags": [
-                    "Authentication"
+                    "Reset Password"
                 ],
                 "summary": "Update user password",
                 "description": "Updates the user's password.",
@@ -516,6 +516,62 @@
                 "responses": {
                     "200": {
                         "description": "Password updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    },
+                    "500": {
+                        "description": "Server Error"
+                    }
+                }
+            }
+        },
+        "/api/resend-otp": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Resend OTP",
+                "description": "Resends the OTP to the user's email.",
+                "operationId": "resendOtp",
+                "requestBody": {
+                    "description": "User email",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "New OTP sent successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
