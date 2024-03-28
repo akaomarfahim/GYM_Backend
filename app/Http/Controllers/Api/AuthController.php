@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use Carbon\Carbon;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -253,14 +254,56 @@ class AuthController extends Controller
      *     )
      * )
      */
+    // public function verifyOtpAndRegister(Request $request)
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'email' => 'required|email',
+    //         'otp' => 'required|string',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json(['message' => $validator->errors()->first()], 422);
+    //     }
+
+    //     // Verify OTP
+    //     $otpFromUser = $request->input('otp');
+    //     $storedOtp = $request->session()->get('email_verification_otp');
+
+    //     if ($otpFromUser != $storedOtp) {
+    //         return response()->json(['message' => 'Invalid OTP.'], 422);
+    //     }
+
+    //     // Clear the stored OTP
+    //     $request->session()->forget('email_verification_otp');
+
+    //     // Find the user by email
+    //     $user = User::where('email', $request->email)->first();
+
+    //     // Mark the user as verified (you may have a 'verified' and 'emailVerifiedAt' column in the users table)
+    //     $user->update([
+    //         'verified' => true,
+    //         'emailVerifiedAt' => Carbon::now()
+    //     ]);
+
+    //     // Log in the user and generate token
+    //     Auth::login($user);
+
+    //     $token = $user->createToken('auth_token')->plainTextToken;
+
+    //     return response()->json(['Bearer' => $token, 'message' => 'Registration successful.'], 201);
+    // }
+
     public function verifyOtpAndRegister(Request $request)
     {
+        Log::channel('custom_log')->info('Verification attempt initiated.', ['email' => $request->email]);
+
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'otp' => 'required|string',
         ]);
 
         if ($validator->fails()) {
+            Log::channel('custom_log')->warning('Invalid input provided.', ['errors' => $validator->errors()->all()]);
             return response()->json(['message' => $validator->errors()->first()], 422);
         }
 
@@ -269,6 +312,7 @@ class AuthController extends Controller
         $storedOtp = $request->session()->get('email_verification_otp');
 
         if ($otpFromUser != $storedOtp) {
+            Log::channel('custom_log')->warning('Invalid OTP provided.', ['email' => $request->email]);
             return response()->json(['message' => 'Invalid OTP.'], 422);
         }
 
@@ -278,11 +322,19 @@ class AuthController extends Controller
         // Find the user by email
         $user = User::where('email', $request->email)->first();
 
-        // Mark the user as verified (you may have a 'verified' and 'emailVerifiedAt' column in the users table)
+        if (!$user) {
+            Log::channel('custom_log')->warning('User not found.', ['email' => $request->email]);
+            return response()->json(['message' => 'User not found.'], 404);
+        }
+
+        // Mark the user as verified
         $user->update([
             'verified' => true,
-            'emailVerifiedAt' => Carbon::now()
+            'emailVerifiedAt' => now()
         ]);
+
+        // Log the registration action
+        Log::channel('custom_log')->info('User registered and verified successfully.', ['email' => $user->email]);
 
         // Log in the user and generate token
         Auth::login($user);
