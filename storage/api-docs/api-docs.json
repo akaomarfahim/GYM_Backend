@@ -1025,7 +1025,9 @@
                     },
                     "goals": {
                         "type": "array",
-                        "items": {}
+                        "items": {
+                            "type": "integer"
+                        }
                     },
                     "registrationType": {
                         "type": "string"

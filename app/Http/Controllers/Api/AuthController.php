@@ -25,7 +25,7 @@ use Illuminate\Validation\ValidationException;
      *     @OA\Property(property="height", type="number", format="float"),
      *     @OA\Property(property="weight", type="integer"),
      *     @OA\Property(property="physicalActivityLevel", type="integer"),
-     *     @OA\Property(property="goals", type="array", @OA\Items()),
+     *     @OA\Property(property="goals", type="array", @OA\Items(type="integer")),
      *     @OA\Property(property="registrationType", type="string"),
      *     @OA\Property(property="userType", type="string"),
      * )
@@ -86,11 +86,6 @@ class AuthController extends Controller
         // Generate OTP
         $otp = rand(10000, 99999);
 
-        // Save the OTP in the user record or any temporary storage
-        // You may use a separate table or cache to store OTPs temporarily
-        // For simplicity, storing in the session for now
-        $request->session()->put('email_verification_otp', $otp);
-
         $user = User::create([
             'firstName' => $request->firstName,
             'lastName' => $request->lastName,
@@ -102,6 +97,7 @@ class AuthController extends Controller
             'goals' => $request->goals,
             'registrationType' => $request->registrationType,
             'userType' => $request->userType,
+            'otp' => $otp,
             'password' => Hash::make($request->password),
         ]);
 
@@ -254,87 +250,31 @@ class AuthController extends Controller
      *     )
      * )
      */
-    // public function verifyOtpAndRegister(Request $request)
-    // {
-    //     $validator = Validator::make($request->all(), [
-    //         'email' => 'required|email',
-    //         'otp' => 'required|string',
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json(['message' => $validator->errors()->first()], 422);
-    //     }
-
-    //     // Verify OTP
-    //     $otpFromUser = $request->input('otp');
-    //     $storedOtp = $request->session()->get('email_verification_otp');
-
-    //     if ($otpFromUser != $storedOtp) {
-    //         return response()->json(['message' => 'Invalid OTP.'], 422);
-    //     }
-
-    //     // Clear the stored OTP
-    //     $request->session()->forget('email_verification_otp');
-
-    //     // Find the user by email
-    //     $user = User::where('email', $request->email)->first();
-
-    //     // Mark the user as verified (you may have a 'verified' and 'emailVerifiedAt' column in the users table)
-    //     $user->update([
-    //         'verified' => true,
-    //         'emailVerifiedAt' => Carbon::now()
-    //     ]);
-
-    //     // Log in the user and generate token
-    //     Auth::login($user);
-
-    //     $token = $user->createToken('auth_token')->plainTextToken;
-
-    //     return response()->json(['Bearer' => $token, 'message' => 'Registration successful.'], 201);
-    // }
-
     public function verifyOtpAndRegister(Request $request)
     {
-        Log::channel('custom_log')->info('Verification attempt initiated.', ['email' => $request->email]);
-
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'otp' => 'required|string',
         ]);
 
         if ($validator->fails()) {
-            Log::channel('custom_log')->warning('Invalid input provided.', ['errors' => $validator->errors()->all()]);
             return response()->json(['message' => $validator->errors()->first()], 422);
         }
 
         // Verify OTP
-        $otpFromUser = $request->input('otp');
-        $storedOtp = $request->session()->get('email_verification_otp');
+        $user = User::where('email', $request->email)
+                ->where('otp', $request->otp)
+                ->first();
 
-        if ($otpFromUser != $storedOtp) {
-            Log::channel('custom_log')->warning('Invalid OTP provided.', ['email' => $request->email]);
+        if (!$user) {
             return response()->json(['message' => 'Invalid OTP.'], 422);
         }
 
-        // Clear the stored OTP
-        $request->session()->forget('email_verification_otp');
-
-        // Find the user by email
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user) {
-            Log::channel('custom_log')->warning('User not found.', ['email' => $request->email]);
-            return response()->json(['message' => 'User not found.'], 404);
-        }
-
-        // Mark the user as verified
+        // Mark the user as verified (you may have a 'verified' and 'emailVerifiedAt' column in the users table)
         $user->update([
             'verified' => true,
-            'emailVerifiedAt' => now()
+            'emailVerifiedAt' => Carbon::now()
         ]);
-
-        // Log the registration action
-        Log::channel('custom_log')->info('User registered and verified successfully.', ['email' => $user->email]);
 
         // Log in the user and generate token
         Auth::login($user);
@@ -469,7 +409,7 @@ class AuthController extends Controller
         if (!$user->verified && !$request->has('otp')) {
             // Resend OTP via email
             $otp = rand(10000, 99999);
-            $request->session()->put('email_verification_otp', $otp);
+            $user->update(['otp' => $otp]);
             $user->notify(new EmailVerificationOTP($otp));
             return response()->json(['message' => 'User not verified. OTP sent to your email.'], 422);
         }
@@ -478,10 +418,11 @@ class AuthController extends Controller
             // $user = User::where('email', $request->email)->first();
 
             // Verify OTP
-            $otpFromUser = $request->input('otp');
-            $storedOtp = $request->session()->get('email_verification_otp');
+            $user = User::where('email', $request->email)
+                ->where('otp', $request->otp)
+                ->first();
 
-            if ($otpFromUser != $storedOtp) {
+            if (!$user) {
                 return response()->json(['message' => 'Invalid OTP.'], 422);
             }
 
@@ -506,7 +447,7 @@ class AuthController extends Controller
             if (!$user->verified) {
                 // Resend OTP via email
                 $otp = rand(10000, 99999);
-                $request->session()->put('email_verification_otp', $otp);
+                $user->update(['otp' => $otp]);
                 $user->notify(new EmailVerificationOTP($otp));
                 auth()->logout();
                 return response()->json(['message' => 'User not verified. OTP sent to your email.'], 422);
@@ -575,10 +516,7 @@ class AuthController extends Controller
         // Generate OTP
         $otp = rand(10000, 99999);
 
-        // Save the OTP in the user record or any temporary storage
-        // You may use a separate table or cache to store OTPs temporarily
-        // For simplicity, storing in the session for now
-        $request->session()->put('password_reset_otp', $otp);
+        $user->update(['otp' => $otp]);
 
         // Send OTP via email
         $user->notify(new EmailVerificationOTP($otp));
@@ -632,15 +570,13 @@ class AuthController extends Controller
         }
 
         // Verify OTP
-        $otpFromUser = $request->input('otp');
-        $storedOtp = $request->session()->get('password_reset_otp');
+        $user = User::where('email', $request->email)
+                ->where('otp', $request->otp)
+                ->first();
 
-        if ($otpFromUser != $storedOtp) {
+        if (!$user) {
             return response()->json(['message' => 'Invalid OTP.'], 422);
         }
-
-        // Clear the stored OTP
-        $request->session()->forget('password_reset_otp');
 
         // Return success response if OTP is verified
         return response()->json(['message' => 'OTP verified successfully.'], 200);
@@ -772,7 +708,7 @@ class AuthController extends Controller
         $otp = rand(10000, 99999);
 
         // Save new OTP
-        $request->session()->put('email_verification_otp', $otp);
+        $user->update(['otp' => $otp]);
 
         // Send new OTP via email
         $user->notify(new EmailVerificationOTP($otp));
