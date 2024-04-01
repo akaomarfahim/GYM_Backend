@@ -267,14 +267,31 @@
                     }
                 },
                 "responses": {
-                    "201": {
+                    "200": {
                         "description": "Registration successful",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
                                         "message": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "example": "Registration successful"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "User not found"
                                         }
                                     },
                                     "type": "object"
@@ -283,10 +300,20 @@
                         }
                     },
                     "422": {
-                        "description": "Validation Error"
-                    },
-                    "404": {
-                        "description": "User not found"
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Validation Error"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1004,6 +1031,9 @@
                     "email": {
                         "type": "string",
                         "format": "email"
+                    },
+                    "phone": {
+                        "type": "string"
                     },
                     "password": {
                         "type": "string",

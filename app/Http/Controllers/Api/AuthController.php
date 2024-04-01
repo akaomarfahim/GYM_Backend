@@ -20,6 +20,7 @@ use Illuminate\Validation\ValidationException;
      *     @OA\Property(property="firstName", type="string"),
      *     @OA\Property(property="lastName", type="string"),
      *     @OA\Property(property="email", type="string", format="email"),
+     *     @OA\Property(property="phone", type="string"),
      *     @OA\Property(property="password", type="string", format="password", minLength=8),
      *     @OA\Property(property="age", type="integer"),
      *     @OA\Property(property="height", type="number", format="float"),
@@ -69,6 +70,7 @@ class AuthController extends Controller
             'firstName' => 'required|string|max:255',
             'lastName' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
+            'phone' => 'nullable|string|unique:users,phone',
             'age' => 'nullable|integer',
             'height' => 'nullable|numeric',
             'weight' => 'nullable|integer',
@@ -90,6 +92,7 @@ class AuthController extends Controller
             'firstName' => $request->firstName,
             'lastName' => $request->lastName,
             'email' => $request->email,
+            'phone' => $request->phone,
             'age' => $request->age,
             'height' => $request->height,
             'weight' => $request->weight,
@@ -143,7 +146,18 @@ class AuthController extends Controller
     public function registerWithoutPass(Request $request)
     {
         $validator = Validator::make($request->all(), [
+            'firstName' => 'required|string|max:255',
+            'lastName' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
+            'phone' => 'nullable|string|unique:users,phone',
+            'age' => 'nullable|integer',
+            'height' => 'nullable|numeric',
+            'weight' => 'nullable|integer',
+            'physicalActivityLevel' => 'nullable|integer',
+            'goals' => 'nullable|array',
+            'registrationType' => 'nullable|string',
+            'userType' => 'nullable|string',
+            'password' => 'nullable|string|min:8',
         ]);
 
         if ($validator->fails()) {
@@ -151,7 +165,19 @@ class AuthController extends Controller
         }
 
         $user = User::create([
+            'firstName' => $request->firstName,
+            'lastName' => $request->lastName,
             'email' => $request->email,
+            'phone' => $request->phone,
+            'age' => $request->age,
+            'height' => $request->height,
+            'weight' => $request->weight,
+            'physicalActivityLevel' => $request->physicalActivityLevel,
+            'goals' => $request->goals,
+            'registrationType' => $request->registrationType,
+            'userType' => $request->userType,
+            'otp' => $otp,
+            'password' => Hash::make($request->password),
         ]);
 
         return response()->json(['message' => 'User registered successfully.'], 201);
@@ -301,20 +327,28 @@ class AuthController extends Controller
      *         ),
      *     ),
      *     @OA\Response(
-     *         response=201,
+     *         response=200,
      *         description="Registration successful",
      *         @OA\JsonContent(
      *             type="object",
-     *             @OA\Property(property="message", type="string")
+     *             @OA\Property(property="message", type="string", example="Registration successful")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="User not found",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="User not found")
      *         )
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Validation Error"
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="User not found"
+     *         description="Validation Error",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="Validation Error")
+     *         )
      *     )
      * )
      */
@@ -322,20 +356,23 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
-            'password' => 'required|string',
+            'password' => 'required|string|min:8',
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['message' => $validator->errors()->first()], 422);
+            return response()->json(['message' => 'Validation Error'], 422);
         }
 
         $user = User::where('email', $request->email)->first();
-        // Update the user's password
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
         $user->update([
             'password' => Hash::make($request->password),
         ]);
 
-        return response()->json(['message' => 'Registration successful.'], 201);
+        return response()->json(['message' => 'Registration successful'], 200);
     }
 
     /**
