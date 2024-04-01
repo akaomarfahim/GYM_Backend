@@ -14,23 +14,23 @@ use App\Notifications\EmailVerificationOTP;
 use Illuminate\Validation\ValidationException;
 
 /**
-     * @OA\Schema(
-     *     schema="RegisterRequest",
-     *     required={"firstName", "lastName", "email", "password"},
-     *     @OA\Property(property="firstName", type="string"),
-     *     @OA\Property(property="lastName", type="string"),
-     *     @OA\Property(property="email", type="string", format="email"),
-     *     @OA\Property(property="phone", type="string"),
-     *     @OA\Property(property="password", type="string", format="password", minLength=8),
-     *     @OA\Property(property="age", type="integer"),
-     *     @OA\Property(property="height", type="number", format="float"),
-     *     @OA\Property(property="weight", type="integer"),
-     *     @OA\Property(property="physicalActivityLevel", type="integer"),
-     *     @OA\Property(property="goals", type="array", @OA\Items(type="integer")),
-     *     @OA\Property(property="registrationType", type="string"),
-     *     @OA\Property(property="userType", type="string"),
-     * )
-     */
+ * @OA\Schema(
+ *     schema="RegisterRequest",
+ *     required={"firstName", "lastName", "email", "password"},
+ *     @OA\Property(property="firstName", type="string"),
+ *     @OA\Property(property="lastName", type="string"),
+ *     @OA\Property(property="email", type="string", format="email"),
+ *     @OA\Property(property="phone", type="string"),
+ *     @OA\Property(property="password", type="string", format="password", minLength=8),
+ *     @OA\Property(property="age", type="integer"),
+ *     @OA\Property(property="height", type="number", format="float"),
+ *     @OA\Property(property="weight", type="integer"),
+ *     @OA\Property(property="physicalActivityLevel", type="integer"),
+ *     @OA\Property(property="goals", type="array", @OA\Items(type="integer"), nullable=true),
+ *     @OA\Property(property="registrationType", type="string"),
+ *     @OA\Property(property="userType", type="string"),
+ * )
+ */
 
 class AuthController extends Controller
 {
@@ -119,10 +119,21 @@ class AuthController extends Controller
      *     operationId="registerWithoutPass",
      *     @OA\RequestBody(
      *         required=true,
-     *         description="User email",
+     *         description="User details",
      *         @OA\JsonContent(
-     *             required={"email"},
+     *             required={"firstName", "lastName", "email"},
+     *             @OA\Property(property="firstName", type="string"),
+     *             @OA\Property(property="lastName", type="string"),
      *             @OA\Property(property="email", type="string", format="email"),
+     *             @OA\Property(property="phone", type="string", nullable=true),
+     *             @OA\Property(property="age", type="integer", nullable=true),
+     *             @OA\Property(property="height", type="number", format="float", nullable=true),
+     *             @OA\Property(property="weight", type="integer", nullable=true),
+     *             @OA\Property(property="physicalActivityLevel", type="integer", nullable=true),
+     *             @OA\Property(property="goals", type="array",  @OA\Items(type="integer"), nullable=true),
+     *             @OA\Property(property="registrationType", type="string", nullable=true),
+     *             @OA\Property(property="userType", type="string", nullable=true),
+     *             @OA\Property(property="password", type="string", format="password", minLength=8, nullable=true),
      *         ),
      *     ),
      *     @OA\Response(
@@ -130,12 +141,21 @@ class AuthController extends Controller
      *         description="User registered successfully",
      *         @OA\JsonContent(
      *             type="object",
+     *             @OA\Property(property="Bearer", type="string"),
      *             @OA\Property(property="message", type="string")
      *         )
      *     ),
      *     @OA\Response(
      *         response=422,
      *         description="Validation Error",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Internal Server Error",
      *         @OA\JsonContent(
      *             type="object",
      *             @OA\Property(property="message", type="string")
@@ -149,7 +169,7 @@ class AuthController extends Controller
             'firstName' => 'required|string|max:255',
             'lastName' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'phone' => 'nullable|string|unique:users,phone',
+            'phone' => 'nullable|string',
             'age' => 'nullable|integer',
             'height' => 'nullable|numeric',
             'weight' => 'nullable|integer',
@@ -176,11 +196,12 @@ class AuthController extends Controller
             'goals' => $request->goals,
             'registrationType' => $request->registrationType,
             'userType' => $request->userType,
-            'otp' => $otp,
             'password' => Hash::make($request->password),
         ]);
 
-        return response()->json(['message' => 'User registered successfully.'], 201);
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json(['Bearer' => $token, 'message' => 'User registered successfully.'], 201);
     }
 
     /**
@@ -240,7 +261,7 @@ class AuthController extends Controller
     /**
      * @OA\Post(
      *     path="/api/users/verify",
-     *     tags={"Authentication"},
+     *     tags={"User OTP Verify"},
      *     summary="Verify OTP and Register",
      *     description="Verify OTP and register the user.",
      *     operationId="verifyOtpAndRegister",
@@ -264,15 +285,27 @@ class AuthController extends Controller
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Validation Error"
+     *         description="Validation Error",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string")
+     *         )
      *     ),
      *     @OA\Response(
      *         response=404,
-     *         description="User not found"
+     *         description="User not found",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string")
+     *         )
      *     ),
      *     @OA\Response(
      *         response=401,
-     *         description="Unauthorized"
+     *         description="Unauthorized",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string")
+     *         )
      *     )
      * )
      */
@@ -289,18 +322,21 @@ class AuthController extends Controller
 
         // Verify OTP
         $user = User::where('email', $request->email)
-                ->where('otp', $request->otp)
-                ->first();
+            ->where('otp', $request->otp)
+            ->first();
 
         if (!$user) {
             return response()->json(['message' => 'Invalid OTP.'], 422);
         }
 
-        // Mark the user as verified (you may have a 'verified' and 'emailVerifiedAt' column in the users table)
-        $user->update([
-            'verified' => true,
-            'emailVerifiedAt' => Carbon::now()
-        ]);
+        // Check if the user is already verified
+        if (!$user->verified) {
+            // Mark the user as verified and update email verification timestamp
+            $user->update([
+                'verified' => true,
+                'emailVerifiedAt' => Carbon::now()
+            ]);
+        }
 
         // Log in the user and generate token
         Auth::login($user);
@@ -561,63 +597,63 @@ class AuthController extends Controller
         return response()->json(['message' => 'OTP sent to your email.'], 200);
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/password/verify-otp",
-     *     tags={"Reset Password"},
-     *     summary="Verify password reset OTP",
-     *     description="Verifies the password reset OTP.",
-     *     operationId="verifyPasswordResetOTP",
-     *     @OA\RequestBody(
-     *         required=true,
-     *         description="User email and OTP",
-     *         @OA\JsonContent(
-     *             required={"email", "otp"},
-     *             @OA\Property(property="email", type="string", format="email"),
-     *             @OA\Property(property="otp", type="string")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="OTP verified successfully",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(property="message", type="string")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation Error or Invalid OTP"
-     *     ),
-     *     @OA\Response(
-     *         response=500,
-     *         description="Server Error"
-     *     )
-     * )
-     */
-    public function verifyPasswordResetOTP(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'otp' => 'required|string',
-        ]);
+    // /**
+    //  * @OA\Post(
+    //  *     path="/api/password/verify-otp",
+    //  *     tags={"Reset Password"},
+    //  *     summary="Verify password reset OTP",
+    //  *     description="Verifies the password reset OTP.",
+    //  *     operationId="verifyPasswordResetOTP",
+    //  *     @OA\RequestBody(
+    //  *         required=true,
+    //  *         description="User email and OTP",
+    //  *         @OA\JsonContent(
+    //  *             required={"email", "otp"},
+    //  *             @OA\Property(property="email", type="string", format="email"),
+    //  *             @OA\Property(property="otp", type="string")
+    //  *         )
+    //  *     ),
+    //  *     @OA\Response(
+    //  *         response=200,
+    //  *         description="OTP verified successfully",
+    //  *         @OA\JsonContent(
+    //  *             type="object",
+    //  *             @OA\Property(property="message", type="string")
+    //  *         )
+    //  *     ),
+    //  *     @OA\Response(
+    //  *         response=422,
+    //  *         description="Validation Error or Invalid OTP"
+    //  *     ),
+    //  *     @OA\Response(
+    //  *         response=500,
+    //  *         description="Server Error"
+    //  *     )
+    //  * )
+    //  */
+    // public function verifyPasswordResetOTP(Request $request)
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'email' => 'required|email',
+    //         'otp' => 'required|string',
+    //     ]);
 
-        if ($validator->fails()) {
-            return response()->json(['message' => $validator->errors()->first()], 422);
-        }
+    //     if ($validator->fails()) {
+    //         return response()->json(['message' => $validator->errors()->first()], 422);
+    //     }
 
-        // Verify OTP
-        $user = User::where('email', $request->email)
-                ->where('otp', $request->otp)
-                ->first();
+    //     // Verify OTP
+    //     $user = User::where('email', $request->email)
+    //         ->where('otp', $request->otp)
+    //         ->first();
 
-        if (!$user) {
-            return response()->json(['message' => 'Invalid OTP.'], 422);
-        }
+    //     if (!$user) {
+    //         return response()->json(['message' => 'Invalid OTP.'], 422);
+    //     }
 
-        // Return success response if OTP is verified
-        return response()->json(['message' => 'OTP verified successfully.'], 200);
-    }
+    //     // Return success response if OTP is verified
+    //     return response()->json(['message' => 'OTP verified successfully.'], 200);
+    // }
 
     /**
      * @OA\Post(

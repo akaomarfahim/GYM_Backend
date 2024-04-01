@@ -23,7 +23,7 @@ Route::post('/users/send-otp', [AuthController::class, 'sendOtp']);
 
 // Password Reset Routes
 Route::post('password/reset', [AuthController::class, 'resetPassword']);
-Route::post('password/verify-otp', [AuthController::class, 'verifyPasswordResetOTP']);
+// Route::post('password/verify-otp', [AuthController::class, 'verifyPasswordResetOTP']);
 Route::post('password/update', [AuthController::class, 'updatePassword']);
 
 //Resend OTP

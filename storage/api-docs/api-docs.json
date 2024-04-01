@@ -63,18 +63,68 @@
                 "description": "Registers a new user without requiring a password.",
                 "operationId": "registerWithoutPass",
                 "requestBody": {
-                    "description": "User email",
+                    "description": "User details",
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "required": [
+                                    "firstName",
+                                    "lastName",
                                     "email"
                                 ],
                                 "properties": {
+                                    "firstName": {
+                                        "type": "string"
+                                    },
+                                    "lastName": {
+                                        "type": "string"
+                                    },
                                     "email": {
                                         "type": "string",
                                         "format": "email"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "age": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "height": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
+                                    },
+                                    "weight": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "physicalActivityLevel": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "goals": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        },
+                                        "nullable": true
+                                    },
+                                    "registrationType": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "userType": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "minLength": 8,
+                                        "nullable": true
                                     }
                                 },
                                 "type": "object"
@@ -89,6 +139,9 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
+                                        "Bearer": {
+                                            "type": "string"
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
@@ -100,6 +153,21 @@
                     },
                     "422": {
                         "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -172,7 +240,7 @@
         "/api/users/verify": {
             "post": {
                 "tags": [
-                    "Authentication"
+                    "User OTP Verify"
                 ],
                 "summary": "Verify OTP and Register",
                 "description": "Verify OTP and register the user.",
@@ -221,13 +289,49 @@
                         }
                     },
                     "422": {
-                        "description": "Validation Error"
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     },
                     "404": {
-                        "description": "User not found"
+                        "description": "User not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     },
                     "401": {
-                        "description": "Unauthorized"
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -438,63 +542,6 @@
                     },
                     "422": {
                         "description": "Validation Error"
-                    },
-                    "500": {
-                        "description": "Server Error"
-                    }
-                }
-            }
-        },
-        "/api/password/verify-otp": {
-            "post": {
-                "tags": [
-                    "Reset Password"
-                ],
-                "summary": "Verify password reset OTP",
-                "description": "Verifies the password reset OTP.",
-                "operationId": "verifyPasswordResetOTP",
-                "requestBody": {
-                    "description": "User email and OTP",
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "email",
-                                    "otp"
-                                ],
-                                "properties": {
-                                    "email": {
-                                        "type": "string",
-                                        "format": "email"
-                                    },
-                                    "otp": {
-                                        "type": "string"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "OTP verified successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation Error or Invalid OTP"
                     },
                     "500": {
                         "description": "Server Error"
@@ -1057,7 +1104,8 @@
                         "type": "array",
                         "items": {
                             "type": "integer"
-                        }
+                        },
+                        "nullable": true
                     },
                     "registrationType": {
                         "type": "string"
