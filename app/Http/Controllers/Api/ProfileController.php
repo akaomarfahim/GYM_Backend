@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -151,4 +152,76 @@ class ProfileController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+
+    /**
+     * @OA\Post(
+     *     path="/api/upload-profile-picture",
+     *     tags={"User Profile"},
+     *     summary="Upload profile picture",
+     *     description="Uploads a profile picture for the authenticated user.",
+     *     operationId="uploadProfilePicture",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         description="Profile picture to upload",
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"profilePicture"},
+     *                 @OA\Property(
+     *                     property="profilePicture",
+     *                     description="Profile picture file",
+     *                     type="string",
+     *                     format="binary"
+     *                 ),
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Profile picture uploaded successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="profilePicture", type="string", description="URL of the uploaded profile picture")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad request"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Internal server error"
+     *     )
+     * )
+     */
+    public function uploadProfilePicture(Request $request)
+    {
+        $request->validate([
+            'profilePicture' => 'required|image|max:2048',
+        ]);
+
+        // Handle the profile picture upload
+        if ($request->hasFile('profilePicture')) {
+            $image = $request->file('profilePicture');
+            $fileName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+            $image->move(public_path('img/profile_pictures'), $fileName);
+
+            // Assuming 'profile_pictures' is a directory within your public directory
+            $profilePictureUrl = url('img/profile_pictures/' . $fileName);
+
+            // Update the user's record with the profile picture URL
+            $user = User::find(auth()->id());
+            $user->profilePicture = $profilePictureUrl;
+            $user->save();
+
+            return response()->json(['profilePicture' => $profilePictureUrl]);
+        }
+
+        return response()->json(['error' => 'Profile picture upload failed.'], 500);
+    }
+
 }

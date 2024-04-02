@@ -1011,6 +1011,64 @@
                 ]
             }
         },
+        "/api/upload-profile-picture": {
+            "post": {
+                "tags": [
+                    "User Profile"
+                ],
+                "summary": "Upload profile picture",
+                "description": "Uploads a profile picture for the authenticated user.",
+                "operationId": "uploadProfilePicture",
+                "requestBody": {
+                    "description": "Profile picture to upload",
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "profilePicture"
+                                ],
+                                "properties": {
+                                    "profilePicture": {
+                                        "description": "Profile picture file",
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profile picture uploaded successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "profilePicture": {
+                                            "description": "URL of the uploaded profile picture",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
         "/api/units-of-measurement": {
             "get": {
                 "tags": [
