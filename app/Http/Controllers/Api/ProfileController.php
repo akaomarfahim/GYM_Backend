@@ -65,7 +65,7 @@ class ProfileController extends Controller
      *             @OA\Property(property="weight", type="integer"),
      *             @OA\Property(property="weightType", type="integer"),
      *             @OA\Property(property="physicalActivityLevel", type="integer"),
-     *             @OA\Property(property="goals", type="array", @OA\Items()),
+     *             @OA\Property(property="goals", type="array", @OA\Items(type="integer"), nullable=true),
      *             @OA\Property(property="newPassword", type="string", minLength=8),
      *             @OA\Property(property="confirmPassword", type="string", minLength=8),
      *         ),
@@ -88,7 +88,7 @@ class ProfileController extends Controller
      *                 @OA\Property(property="weight", type="integer"),
      *                 @OA\Property(property="weightType", type="integer"),
      *                 @OA\Property(property="physicalActivityLevel", type="integer"),
-     *                 @OA\Property(property="goals", type="array", @OA\Items()),
+     *                 @OA\Property(property="goals", type="array", @OA\Items(type="integer"), nullable=true),
      *                 @OA\Property(property="created_at", type="string", format="date-time"),
      *                 @OA\Property(property="updated_at", type="string", format="date-time"),
      *             )
@@ -146,7 +146,7 @@ class ProfileController extends Controller
 
             $user->update($data);
 
-            return response()->json(['user' => $user]);
+            return response()->json($user);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }

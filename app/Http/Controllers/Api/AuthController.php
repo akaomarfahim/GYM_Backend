@@ -70,7 +70,7 @@ class AuthController extends Controller
             'firstName' => 'required|string|max:255',
             'lastName' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'phone' => 'nullable|string|unique:users,phone',
+            'phone' => 'nullable|string',
             'age' => 'nullable|integer',
             'height' => 'nullable|numeric',
             'weight' => 'nullable|integer',
@@ -79,6 +79,10 @@ class AuthController extends Controller
             'registrationType' => 'nullable|string',
             'userType' => 'nullable|string',
             'password' => 'nullable|string|min:8',
+        ]);
+
+        $validator->setCustomMessages([
+            'email.unique' => 'Email already taken.',
         ]);
 
         if ($validator->fails()) {
@@ -180,6 +184,10 @@ class AuthController extends Controller
             'password' => 'nullable|string|min:8',
         ]);
 
+        $validator->setCustomMessages([
+            'email.unique' => 'Email already taken.',
+        ]);
+
         if ($validator->fails()) {
             return response()->json(['message' => $validator->errors()->first()], 422);
         }
@@ -201,7 +209,7 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json(['Bearer' => $token, 'message' => 'User registered successfully.'], 201);
+        return response()->json(['Bearer' => $token, 'message' => 'Welcome aboard!'], 201);
     }
 
     /**
@@ -224,7 +232,8 @@ class AuthController extends Controller
      *         description="Login successful",
      *         @OA\JsonContent(
      *             type="object",
-     *             @OA\Property(property="Bearer", type="string")
+     *             @OA\Property(property="Bearer", type="string"),
+     *             @OA\Property(property="message", type="string")
      *         )
      *     ),
      *     @OA\Response(
@@ -255,7 +264,7 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json(['Bearer' => $token], 200);
+        return response()->json(['Bearer' => $token, 'message' => 'Welcome back'], 200);
     }
 
     /**

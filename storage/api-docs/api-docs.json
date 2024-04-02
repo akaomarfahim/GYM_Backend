@@ -221,6 +221,9 @@
                                     "properties": {
                                         "Bearer": {
                                             "type": "string"
+                                        },
+                                        "message": {
+                                            "type": "string"
                                         }
                                     },
                                     "type": "object"
@@ -880,7 +883,10 @@
                                     },
                                     "goals": {
                                         "type": "array",
-                                        "items": {}
+                                        "items": {
+                                            "type": "integer"
+                                        },
+                                        "nullable": true
                                     },
                                     "newPassword": {
                                         "type": "string",
@@ -945,7 +951,10 @@
                                                 },
                                                 "goals": {
                                                     "type": "array",
-                                                    "items": {}
+                                                    "items": {
+                                                        "type": "integer"
+                                                    },
+                                                    "nullable": true
                                                 },
                                                 "created_at": {
                                                     "type": "string",
