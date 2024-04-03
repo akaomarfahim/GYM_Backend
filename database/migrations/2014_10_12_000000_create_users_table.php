@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('phone')->nullable();
             $table->string('profilePicture')->nullable();
+            $table->string('coverPicture')->nullable();
             $table->integer('gender')->nullable();
             $table->integer('age')->nullable();
             $table->double('height')->nullable();

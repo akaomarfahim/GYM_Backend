@@ -18,6 +18,7 @@ class User extends Authenticatable
         'email',
         'phone',
         'profilePicture',
+        'coverPicture',
         'gender',
         'age',
         'height',

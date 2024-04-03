@@ -376,6 +376,7 @@ class AuthController extends Controller
      *         description="Registration successful",
      *         @OA\JsonContent(
      *             type="object",
+     *             @OA\Property(property="Bearer", type="string"),
      *             @OA\Property(property="message", type="string", example="Registration successful")
      *         )
      *     ),
@@ -417,7 +418,9 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        return response()->json(['message' => 'Registration successful'], 200);
+        $token = auth()->user()->createToken('auth_token')->plainTextToken;
+
+        return response()->json(['Bearer' => $token, 'message' => 'Registration successful'], 200);
     }
 
     /**

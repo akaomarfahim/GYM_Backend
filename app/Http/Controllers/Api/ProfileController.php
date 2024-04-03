@@ -62,7 +62,7 @@ class ProfileController extends Controller
      *             @OA\Property(property="profilePicture", type="string"),
      *             @OA\Property(property="gender", type="integer"),
      *             @OA\Property(property="age", type="integer"),
-     *             @OA\Property(property="height", type="number", format="double"),
+     *             @OA\Property(property="height", type="number", format="float"),
      *             @OA\Property(property="weight", type="integer"),
      *             @OA\Property(property="weightType", type="integer"),
      *             @OA\Property(property="physicalActivityLevel", type="integer"),
@@ -85,7 +85,7 @@ class ProfileController extends Controller
      *                 @OA\Property(property="profilePicture", type="string"),
      *                 @OA\Property(property="gender", type="integer"),
      *                 @OA\Property(property="age", type="integer"),
-     *                 @OA\Property(property="height", type="number", format="double"),
+     *                 @OA\Property(property="height", type="number", format="float"),
      *                 @OA\Property(property="weight", type="integer"),
      *                 @OA\Property(property="weightType", type="integer"),
      *                 @OA\Property(property="physicalActivityLevel", type="integer"),
@@ -126,7 +126,7 @@ class ProfileController extends Controller
                 'profilePicture' => 'nullable|string',
                 'gender' => 'nullable|integer',
                 'age' => 'nullable|integer',
-                'height' => 'nullable|double',
+                'height' => 'nullable|numeric',
                 'weight' => 'nullable|integer',
                 'weightType' => 'nullable|integer',
                 'physicalActivityLevel' => 'nullable|integer',
@@ -139,7 +139,7 @@ class ProfileController extends Controller
 
             if ($request->filled('oldPassword') && $request->filled('newPassword')) {
                 if (!\Hash::check($request->input('oldPassword'), $user->password)) {
-                    return response()->json(['error' => 'The old password is incorrect.'], 422);
+                    return response()->json(['message' => 'The old password is incorrect.'], 422);
                 }
 
                 $data['password'] = bcrypt($request->input('newPassword'));
@@ -149,7 +149,7 @@ class ProfileController extends Controller
 
             return response()->json($user);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['message' => $e->getMessage()], 500);
         }
     }
 
@@ -178,7 +178,7 @@ class ProfileController extends Controller
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Profile picture uploaded successfully",
+     *         description="Profile picture uploaded",
      *         @OA\JsonContent(
      *             type="object",
      *             @OA\Property(property="profilePicture", type="string", description="URL of the uploaded profile picture")
@@ -218,10 +218,81 @@ class ProfileController extends Controller
             $user->profilePicture = $profilePictureUrl;
             $user->save();
 
-            return response()->json(['profilePicture' => $profilePictureUrl]);
+            return response()->json(['profilePicture' => $profilePictureUrl, 'message' => 'Profile picture uploaded.']);
         }
 
-        return response()->json(['error' => 'Profile picture upload failed.'], 500);
+        return response()->json(['message' => 'Profile picture upload failed.'], 500);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/upload-cover-picture",
+     *     tags={"User Profile"},
+     *     summary="Upload cover picture",
+     *     description="Uploads a cover picture for the authenticated user.",
+     *     operationId="uploadCoverPicture",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         description="Cover picture to upload",
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"coverPicture"},
+     *                 @OA\Property(
+     *                     property="coverPicture",
+     *                     description="Cover picture file",
+     *                     type="string",
+     *                     format="binary"
+     *                 ),
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Cover picture uploaded",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="coverPicture", type="string", description="URL of the uploaded cover picture")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad request"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Internal server error"
+     *     )
+     * )
+     */
+    public function uploadCoverPicture(Request $request)
+    {
+        $request->validate([
+            'coverPicture' => 'required|image|max:2048',
+        ]);
+
+        // Handle the cover picture upload
+        if ($request->hasFile('coverPicture')) {
+            $image = $request->file('coverPicture');
+            $fileName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+            $image->move(public_path('img/cover_pictures'), $fileName);
+
+            // Assuming 'cover_pictures' is a directory within your public directory
+            $coverPictureUrl = url('img/cover_pictures/' . $fileName);
+
+            // Update the user's record with the cover picture URL
+            $user = User::find(auth()->id());
+            $user->coverPicture = $coverPictureUrl;
+            $user->save();
+
+            return response()->json(['coverPicture' => $coverPictureUrl, 'message' => 'Cover picture uploaded.']);
+        }
+
+        return response()->json(['message' => 'Cover picture upload failed.'], 500);
     }
 
 }
